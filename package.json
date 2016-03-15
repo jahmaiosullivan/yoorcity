@@ -6,7 +6,7 @@
     "build": "webpack --config webpack.config.production.js --progress --colors",
     "stats": "webpack --config webpack.config.production.js --profile --json > stats.json",
     "postinstall": "npm run build",
-    "start": "node server.js"
+    "start": "node app.js"
   },
   "dependencies": {
     "alt": "^0.18.2",
