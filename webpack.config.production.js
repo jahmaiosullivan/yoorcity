@@ -14,8 +14,6 @@ const PATHS = {
     build: path.join(__dirname, 'build'),
     style: path.join(__dirname, 'app/main.css')
 };
-const NpmInstallPlugin = require('npm-install-webpack-plugin');
-
 
 // Load *package.json* so we can use `dependencies` from there
 const pkg = require('./package.json');
@@ -65,43 +63,56 @@ const common = {
 };
 
 module.exports = merge(common, {
-    devtool: 'eval-source-map',
-    devServer: {
-        // Enable history API fallback so HTML5 History API based
-        // routing works. This is a good default that will come
-        // in handy in more complicated setups.
-        historyApiFallback: true,
-        hot: true,
-        inline: true,
-        progress: true,
-
-        // Display only errors to reduce the amount of output.
-        stats: 'errors-only',
-
-        // Parse host and port from env so this is easy to customize.
-        //
-        // If you use Vagrant or Cloud9, set
-        // host: process.env.HOST || '0.0.0.0';
-        //
-        // 0.0.0.0 is available to all network devices unlike default
-        // localhost
-        host: process.env.HOST,
-        port: process.env.PORT
+    // Define vendor entry point needed for splitting
+    entry: {
+        vendor: Object.keys(pkg.dependencies).filter(function (v) {
+            // Exclude alt-utils as it won't work with this setup
+            // due to the way the package has been designed
+            // (no package.json main).
+            return v !== 'alt-utils';
+        })
+    },
+    output: {
+        path: PATHS.build,
+        filename: '[name].[chunkhash].js',
+        chunkFilename: '[chunkhash].js'
     },
     module: {
         loaders: [
-            // Define development specific CSS setup
+            // Extract CSS during build
             {
                 test: /\.css$/,
-                loaders: ['style', 'css'],
+                loader: ExtractTextPlugin.extract('style', 'css'),
                 include: PATHS.app
             }
         ]
     },
     plugins: [
-        new webpack.HotModuleReplacementPlugin(),
-        new NpmInstallPlugin({
-            save: true // --save
-        })
-    ]
+        new CleanPlugin([PATHS.build]),
+
+        // Extract vendor and manifest files
+        new webpack.optimize.CommonsChunkPlugin({
+            names: ['vendor', 'manifest']
+        }),
+        // Setting DefinePlugin affects React library size!
+        // DefinePlugin replaces content "as is" so we need some extra quotes
+        // for the generated code to make sense
+        new webpack.DefinePlugin({
+            'process.env.NODE_ENV': '"production"'
+
+            // You can set this to JSON.stringify('development') for your
+            // development target to force NODE_ENV to development mode
+            // no matter what
+        }),
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+                warnings: false
+            }
+        }),
+        new webpack.optimize.DedupePlugin(),
+        // Output extracted CSS to a file
+        new ExtractTextPlugin('[name].[chunkhash].css')
+    ],
+    target: 'node', // in order to ignore built-in modules like path, fs, etc.
+    externals: [nodeExternals()] // in order to ignore all modules in node_modules folder
 });
