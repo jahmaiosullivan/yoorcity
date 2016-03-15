@@ -1,6 +1,7 @@
 const path = require('path');
 const merge = require('webpack-merge');
 var webpack = require('webpack');
+var nodeExternals = require('webpack-node-externals');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanPlugin = require('clean-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
@@ -158,6 +159,8 @@ if(TARGET === 'build' || TARGET === 'stats') {
             new webpack.optimize.DedupePlugin(),
             // Output extracted CSS to a file
             new ExtractTextPlugin('[name].[chunkhash].css')
-        ]
+        ],
+        target: 'node', // in order to ignore built-in modules like path, fs, etc.
+        externals: [nodeExternals()] // in order to ignore all modules in node_modules folder
     });
 }
