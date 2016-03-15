@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "webpack --config webpack.config.production.js",
-    "start": "webpack-dev-server",
-    "stats": "webpack --config webpack.config.production.js --profile --json > stats.json"
+    "build": "webpack --config webpack.config.production.js --progress --colors",
+    "stats": "webpack --config webpack.config.production.js --profile --json > stats.json",
+    "postinstall": "npm run build",
+    "start": "node server.js"
   },
   "dependencies": {
     "alt": "^0.18.2",
