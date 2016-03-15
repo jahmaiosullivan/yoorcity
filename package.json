@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "webpack",
+    "build": "webpack --config webpack.config.production.js",
     "start": "webpack-dev-server",
-    "stats": "webpack --profile --json > stats.json"
+    "stats": "webpack --config webpack.config.production.js --profile --json > stats.json"
   },
   "dependencies": {
     "alt": "^0.18.2",
